@@ -84,7 +84,7 @@ def eliminate_left_recursion(productions,terminals):
     new_prod={}
     for i in range(len(d)):
         new_prod[d[i][0][0]]=d[i][1]
-    #print(new_prod)
+    
     return(new_prod)
 
 
@@ -131,12 +131,10 @@ def first(val,productions):
     else:
         
         for prod in productions[val[0]]:
-            #print("Hello in the productions",prod)
             if(prod == "^"):
                 first_set = first_set.union(prod)
             else:
                 if(prod[0].isupper()):
-                    #print("In the non terminal sections",prod,prod[0])
                     NT_first_set = first(prod[0],productions)
                     if("^" in NT_first_set):
                         if(len(prod) > 1):
@@ -161,12 +159,10 @@ def follow(val,productions,start_symbol):
             for char_idx in range(len(strings)):
                 if(strings[char_idx] == val):
                     if(char_idx == len(strings)-1):
-                        # print(key,val,strings+" checking for ending case")
                         if(key == val):
                             flag=0
                             break
                         NT_follow_set = follow(key,productions,start_symbol)
-                        #print("Anti follow set",key ,val,follow_set)
                         follow_set = follow_set.union(NT_follow_set)
                     else:
                         NT_first_set = first(strings[char_idx+1:],productions)
