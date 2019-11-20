@@ -118,12 +118,12 @@ def table_construction(productions,start_symbol,follow_set):
     print("\n")
     return(table) 
 
-
+#Function to print productions
 def print_productions(productions):
     for i in productions:
         print(i+"->"+('/').join(productions[i]))
 
-
+#Function to generate first set
 def first(val,productions):
     first_set=set()
     if(not(val[0].isupper())):
@@ -149,6 +149,7 @@ def first(val,productions):
                     
     return(first_set)
 
+#Function to generate first set
 def follow(val,productions,start_symbol):
     follow_set = set()
     if(start_symbol == val):
@@ -199,10 +200,9 @@ if __name__=="__main__":
             flag=0
             start_symbol=k[0]
         if(k[0] not in productions):
-            productions[k[0]]=[]   
-        productions[k[0]]+=(k[1].split('|'))
+            productions[(k[0]).strip()]=[]   
+        productions[(k[0]).strip()]+=(''.join(j.strip().split()) for j in k[1].split('|'))
     terminals=[i for i in productions]
-    
     print("\nProductions : ")
     print_productions(productions)
     pr1=productions
