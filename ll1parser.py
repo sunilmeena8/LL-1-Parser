@@ -1,7 +1,9 @@
+
 import pandas as pd
 #eliminate immediate left recursion
 terminals=[]
 change_name={}
+
 def parsing(table,input_string,start_symbol):
     string_pointer=0
     stack=['$',start_symbol]
@@ -24,7 +26,7 @@ def parsing(table,input_string,start_symbol):
         else:
             key=top,stch
             if(key not in table):
-                exit(print(key,"string not valid"))
+                exit(print("String not valid!"))
 
             if(table[key]!='^'):
                 
@@ -94,18 +96,19 @@ def table_construction(productions,start_symbol,follow_set):
     for key in productions:
         for val in productions[key]:
             if(val!="^"):
-                for term in first(val,productions):
+                for term in first(val,productions,[]):
                     if (key,term) not in table:
                         table[key,term]=val
                     else:
-                        exit(print("Error"))
+                        exit(print("Error Not LL(1) grammar"))
             else:
                 # for term in follow(key,productions,start_symbol):
                 for term in follow_set[key]:
                     if (key,term) not in table:
                         table[key,term]=val
                     else:
-                        exit(print("Error"))  
+                        #print(table)
+                        exit(print("Error Not LL(1) grammar"))  
     #print(table)
     new_table = {}
     for pair in table:
@@ -124,8 +127,11 @@ def print_productions(productions):
         print(i+"->"+('/').join(productions[i]))
 
 #Function to generate first set
-def first(val,productions):
+def first(val,productions,visited):
     first_set=set()
+    #print(val,productions)
+    # if(val in visited):
+    #     return first_set
     if(not(val[0].isupper())):
         first_set=first_set.union(val[0])
     else:
@@ -135,10 +141,12 @@ def first(val,productions):
                 first_set = first_set.union(prod)
             else:
                 if(prod[0].isupper()):
-                    NT_first_set = first(prod[0],productions)
+                    if(prod[0] in visited):
+                        continue
+                    NT_first_set = first(prod[0],productions,visited+[prod[0]])
                     if("^" in NT_first_set):
                         if(len(prod) > 1):
-                            NT_first_set_again = first(prod[1:],productions)
+                            NT_first_set_again = first(prod[1:],productions,visited+[prod[0]])
                             #When "^" is in first of a NT 
                             #Then production is checked further and its set is unioned with first_set(final result)
                             first_set = first_set.union(NT_first_set_again)
@@ -150,31 +158,43 @@ def first(val,productions):
     return(first_set)
 
 #Function to generate first set
-def follow(val,productions,start_symbol):
+def follow(val,productions,start_symbol,visited_NT):
     follow_set = set()
     if(start_symbol == val):
         follow_set = set('$')
+    # if(val in visited_NT):
+    #     return follow_set
+
     for key,prod in productions.items():
         flag=1
         for strings in prod:
             for char_idx in range(len(strings)):
                 if(strings[char_idx] == val):
                     if(char_idx == len(strings)-1):
-                        if(key == val):
+                        if(key in visited_NT):
                             flag=0
                             break
-                        NT_follow_set = follow(key,productions,start_symbol)
+                        
+                        
+                        NT_follow_set = follow(key,productions,start_symbol,visited_NT+[key])
                         follow_set = follow_set.union(NT_follow_set)
                     else:
-                        NT_first_set = first(strings[char_idx+1:],productions)
+                        NT_first_set = first(strings[char_idx+1:],productions,[])
+                        
                         for element in NT_first_set:
                             if(element=="^"):
-                                NT_follow_set_again = follow(key,productions,start_symbol)
+                                #print(key,element)
+                                if(key in visited_NT):
+                                    flag=0
+                                    break
+                                NT_follow_set_again = follow(key,productions,start_symbol,visited_NT+[key])
                                 follow_set = follow_set.union(NT_follow_set_again)
+                            
                             else:
                                 follow_set = follow_set.union(element)
                 else:
                     #do nothing
+
                     pass
             if flag==0:
                 break
@@ -199,9 +219,12 @@ if __name__=="__main__":
         if(flag==1):
             flag=0
             start_symbol=k[0]
-        if(k[0] not in productions):
+        if(k[0].strip() not in productions):
             productions[(k[0]).strip()]=[]   
-        productions[(k[0]).strip()]+=(''.join(j.strip().split()) for j in k[1].split('|'))
+        # productions[(k[0]).strip()]+=(''.join(j.strip().split()) for j in k[1].split('|'))
+        productions[(k[0]).strip()]+=(j.strip() for j in k[1].split('|'))
+        #x=(str(j.strip()) for j in k[1].split('|'))
+        
     terminals=[i for i in productions]
     print("\nProductions : ")
     print_productions(productions)
@@ -219,8 +242,8 @@ if __name__=="__main__":
             start_symbol = key
             flag = 0
             
-        follow_set[key] = follow(key,productions,start_symbol)
-        first_set[key] = first(key,productions)
+        follow_set[key] = follow(key,productions,start_symbol,[])
+        first_set[key] = first(key,productions,[])
         
     
     print("-----------------------------")

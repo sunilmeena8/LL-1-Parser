@@ -1,4 +1,3 @@
-G -> A
-A -> ( A ) | T
-T-> a
-T -> b
+S->Ab|^
+A->CS
+C->c|d
